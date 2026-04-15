@@ -31,7 +31,7 @@ The reservoir is a randomly initialized recurrent neural network. Input weights 
 
 ```bash
 git clone https://github.com/kmranrg/Chamber-of-Echoes.git
-cd chamber-of-echoes
+cd Chamber-of-Echoes
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt

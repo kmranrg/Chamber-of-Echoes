@@ -45,16 +45,6 @@ python game.py
 
 **Controls:** Arrow keys / WASD for manual play, Space to start/pause. Voice control activates when the RC controller is connected.
 
-## Project Structure
-
-```
-chamber-of-echoes/
-├── game.py              # Snake game UI (Flet)
-├── rc_controller.py     # RC model
-├── requirements.txt
-└── README.md
-```
-
 ## Acknowledgements
 
 Built as a final project for the Reservoir Computing course by [Kumar Anurag](https://kan.phd).

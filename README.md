@@ -232,6 +232,6 @@ This project demonstrates that not every AI problem needs a large model — some
 
 ## Acknowledgements
 
-Built as a final project for the Reservoir Computing course by [Kumar Anurag](https://kan.phd).
+Built as a final project for the Reservoir Computing course by [Kumar Anurag](https://github.com/kmranrg/Chamber-of-Echoes/blob/main/reference-lecture/L03_Introducing_RC_%5Ba%5D.pdf).
 
 *Named after the Chamber of Secrets from Harry Potter and the Echo State Property from RC theory — because in this game, the serpent listens to your voice.*

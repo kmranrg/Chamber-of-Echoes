@@ -20,9 +20,12 @@ class ReservoirComputer:
     def _get_final_state(self, sequence):
         """Processes a sequence of audio features through the reservoir over time."""
         x = np.zeros(self.res_size)     # initial state
+        all_states = []                 # keep track of states over time
         for u in sequence:
             x = (1 - self.alpha) * x + self.alpha * np.tanh(np.dot(self.W_in, u) + np.dot(self.W, x))
-        return x
+            all_states.append(x)
+        # returing the average of state across all timesteps, not just the last one!
+        return np.mean(all_states, axis=0)
     
     def train(self, X_train, Y_train, beta=1e-4):
         """

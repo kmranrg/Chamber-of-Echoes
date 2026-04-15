@@ -2,7 +2,6 @@ import flet as ft
 import flet.canvas as cv
 import random
 import asyncio
-import threading
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional
@@ -125,15 +124,8 @@ class SnakeGame:
 
 
 DIRECTION_LABELS = {
-    Direction.UP: "8 → UP", Direction.DOWN: "2 → DOWN",
-    Direction.LEFT: "4 → LEFT", Direction.RIGHT: "6 → RIGHT",
-}
-
-DIGIT_TO_DIRECTION = {
-    '8': (Direction.UP, "8 → UP"),
-    '2': (Direction.DOWN, "2 → DOWN"),
-    '4': (Direction.LEFT, "4 → LEFT"),
-    '6': (Direction.RIGHT, "6 → RIGHT"),
+    Direction.UP: "W → UP", Direction.DOWN: "S → DOWN",
+    Direction.LEFT: "A → LEFT", Direction.RIGHT: "D → RIGHT",
 }
 
 
@@ -143,9 +135,6 @@ class GameUI:
         self.game = SnakeGame()
         self._loop_running = False
         self._last_voice_cmd: Optional[str] = None
-        self._voice_active = False
-        self._voice_thread: Optional[threading.Thread] = None
-        self._rc_model = None
         self.cell_size = 30
         self.grid_cols = MIN_COLS
         self.grid_rows = GRID_ROWS
@@ -243,13 +232,10 @@ class GameUI:
         )
 
         cmd_map = ft.Column(spacing=6, controls=[
-            ft.Text("VOICE COMMANDS", size=15, color=COLOR_ACCENT,
+            ft.Text("COMMANDS", size=15, color=COLOR_ACCENT,
                      weight=ft.FontWeight.BOLD, font_family=FONT_MONO),
             *[ft.Text(label, size=14, color=COLOR_TEXT, font_family=FONT_MONO)
               for label in DIRECTION_LABELS.values()],
-            ft.Container(height=4),
-            ft.Text("Press V to toggle voice", size=11,
-                     color="#888", italic=True, font_family=FONT_MONO),
         ])
 
         header = ft.Container(
@@ -283,7 +269,7 @@ class GameUI:
                 controls=[
                     ft.Text("Developer: Kumar Anurag", size=13,
                              color="#ffffff", font_family=FONT_MONO),
-                    ft.Text("Controls: WASD / Arrows / V for Voice", size=13,
+                    ft.Text("Controls: WASD / Arrow Keys", size=13,
                              color="#ffffff", font_family=FONT_MONO),
                 ],
             ),
@@ -404,7 +390,7 @@ class GameUI:
 
         if self.game.state == GameState.MENU:
             shapes += self._overlay("CHAMBER OF ECHOES", "Press SPACE to start",
-                                     "WASD / Arrows / V for Voice")
+                                     "WASD / Arrows")
         elif self.game.state == GameState.PAUSED:
             shapes += self._overlay("PAUSED", "Press SPACE to resume", "")
         elif self.game.state == GameState.GAME_OVER:
@@ -459,8 +445,6 @@ class GameUI:
             "Arrow Left": Direction.LEFT, "Arrow Right": Direction.RIGHT,
             "W": Direction.UP, "S": Direction.DOWN,
             "A": Direction.LEFT, "D": Direction.RIGHT,
-            "w": Direction.UP, "s": Direction.DOWN,
-            "a": Direction.LEFT, "d": Direction.RIGHT,
         }
         if key in key_map and self.game.state == GameState.PLAYING:
             self.game.set_direction(key_map[key])
@@ -480,9 +464,6 @@ class GameUI:
                 self.game.reset()
                 self.game.state = GameState.PLAYING
                 self._start_loop()
-        if key in ("V", "v"):
-            print(f"[DEBUG] V key pressed, toggling voice...")
-            self.toggle_voice()
 
     def voice_command(self, direction: Direction, label: str = ""):
         """Call from RC controller: game_ui.voice_command(Direction.UP, "8 → UP")"""
@@ -492,55 +473,6 @@ class GameUI:
             self.voice_label.value = f"VOICE: {self._last_voice_cmd}"
             self.voice_indicator.bgcolor = COLOR_FOOD
             self.page.update()
-
-    def toggle_voice(self):
-        if self._voice_active:
-            self._voice_active = False
-            self.voice_label.value = "VOICE: off"
-            self.voice_indicator.bgcolor = "#444"
-            self.page.update()
-            print("[DEBUG] Voice OFF")
-        else:
-            if self._rc_model is None:
-                self.voice_label.value = "VOICE: loading model..."
-                self.voice_indicator.bgcolor = COLOR_ACCENT
-                self.page.update()
-                print("[DEBUG] Loading RC model...")
-                try:
-                    from rc_controller import load_model
-                    self._rc_model = load_model()
-                    print("[DEBUG] RC model loaded successfully")
-                except Exception as e:
-                    self.voice_label.value = f"VOICE: error"
-                    self.voice_indicator.bgcolor = "#f44"
-                    self.page.update()
-                    print(f"[DEBUG] Failed to load RC model: {e}")
-                    return
-
-            self._voice_active = True
-            self.voice_label.value = "VOICE: listening..."
-            self.voice_indicator.bgcolor = "#0f0"
-            self.page.update()
-            print("[DEBUG] Voice ON — starting listener thread")
-
-            if self._voice_thread is None or not self._voice_thread.is_alive():
-                self._voice_thread = threading.Thread(target=self._voice_loop, daemon=True)
-                self._voice_thread.start()
-
-    def _voice_loop(self):
-        from rc_controller import record_and_predict
-        print("[DEBUG] Voice loop started")
-        while self._voice_active:
-            try:
-                digit = record_and_predict(self._rc_model)
-                print(f"[DEBUG] Predicted digit: {digit}")
-                if digit in DIGIT_TO_DIRECTION and self._voice_active:
-                    direction, label = DIGIT_TO_DIRECTION[digit]
-                    print(f"[DEBUG] Sending direction: {label}")
-                    self.voice_command(direction, label)
-            except Exception as e:
-                print(f"[DEBUG] Voice error: {e}")
-        print("[DEBUG] Voice loop ended")
 
     def _start_loop(self):
         if not self._loop_running:

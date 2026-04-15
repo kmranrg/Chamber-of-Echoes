@@ -94,7 +94,7 @@ def train_and_save_model():
 
     X_train, Y_train = prepare_dataset()
 
-    rc = ReservoirComputer(input_dim=20, res_size=100)    # we set input_dim=20 because in we use n_mfcc=20 in extract_mfcc function
+    rc = ReservoirComputer(input_dim=20, res_size=100, alpha=0.3)    # we set input_dim=20 because in we use n_mfcc=20 in extract_mfcc function
     rc.train(X_train, Y_train)
 
     with open(MODEL_FILE, 'wb') as f:

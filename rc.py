@@ -2,11 +2,12 @@ import numpy as np
 
 
 class ReservoirComputer:
-    def __init__(self, input_dim, output_dim=4, res_size=400, alpha=0.3, spectral_radius=0.95):
+    def __init__(self, input_dim, output_nodes=4, res_size=400, alpha=0.3, spectral_radius=0.95, washout=10):
         self.input_dim = input_dim
         self.res_size = res_size
         self.alpha = alpha
-        self.output_dim = output_dim
+        self.output_nodes = output_nodes
+        self.washout = washout
 
         self.W_in = np.random.uniform(-0.5, 0.5, (self.res_size, self.input_dim))
 
@@ -15,17 +16,17 @@ class ReservoirComputer:
         max_eig = np.max(np.abs(eigenvalues))
         self.W = W_raw * (spectral_radius / max_eig)
 
-        self.W_out = np.zeros((self.output_dim, self.res_size))
+        self.W_out = np.zeros((self.output_nodes, self.res_size))
 
     def _get_final_state(self, sequence):
         """Processes a sequence of audio features through the reservoir over time."""
         x = np.zeros(self.res_size)     # initial state
         all_states = []                 # keep track of states over time
-        for u in sequence:
+        for i, u in enumerate(sequence):
             x = (1 - self.alpha) * x + self.alpha * np.tanh(np.dot(self.W_in, u) + np.dot(self.W, x))
-            all_states.append(x)
-        # returing the average of state across all timesteps, not just the last one!
-        return np.mean(all_states, axis=0)
+            if i > self.washout:
+                all_states.append(x)
+        return np.mean(all_states, axis=0) if all_states else x
     
     def train(self, X_train, Y_train, beta=1e-4):
         """

@@ -2,11 +2,11 @@ import numpy as np
 
 
 class ReservoirComputer:
-    def __init__(self, input_dim, output_nodes=4, res_size=400, alpha=0.3, spectral_radius=0.95, washout=10):
+    def __init__(self, input_dim, output_dim=4, res_size=400, alpha=0.3, spectral_radius=0.95, washout=10):
         self.input_dim = input_dim
         self.res_size = res_size
         self.alpha = alpha
-        self.output_nodes = output_nodes
+        self.output_dim = output_dim
         self.washout = washout
 
         self.W_in = np.random.uniform(-0.5, 0.5, (self.res_size, self.input_dim))
@@ -16,7 +16,7 @@ class ReservoirComputer:
         max_eig = np.max(np.abs(eigenvalues))
         self.W = W_raw * (spectral_radius / max_eig)
 
-        self.W_out = np.zeros((self.output_nodes, self.res_size))
+        self.W_out = np.zeros((self.output_dim, self.res_size))
 
     def _get_final_state(self, sequence):
         """Processes a sequence of audio features through the reservoir over time."""
